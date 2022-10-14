@@ -1,84 +1,51 @@
 import { Injectable } from "@angular/core";
 import { FaceSnap } from "../models/face-snap.model";
+import {HttpClient} from "@angular/common/http";
+import {map, Observable, switchMap} from "rxjs";
 
 @Injectable({
     providedIn: 'root'
 })
 export class FaceSnapsService {
-    faceSnaps: FaceSnap[] = [
-        {
-          id: 1,
-          title: "Kanagawa",
-          description: "Vague de Kanagawa - Japon - 1831",
-          imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0a/The_Great_Wave_off_Kanagawa.jpg",
-          createdDate: new Date(),
-          snaps: 54,
-          location: "Kanagawa"
-        },
-        {
-          id: 2,
-          title: "Kitsune",
-          description: "Kasai Kitsune - Renard brulant a neuf queues",
-          imageUrl: "https://cdn.shopify.com/s/files/1/0606/7260/6439/files/Kasai_Kitsune_480x480.jpg?v=1639474688",
-          createdDate: new Date(),
-          snaps: 0,
-          location: "Japon"
-        },
-        {
-          id: 3,
-          title: "Amaterasu",
-          description: "Amaterasu - Dieu du Soleil au Japon",
-          imageUrl: "https://thumbs.dreamstime.com/z/shinto-d%C3%A9esse-de-la-mythologie-du-soleil-d-amaterasu-art-vecteur-203296709.jpg",
-          createdDate: new Date(),
-          snaps: 0,
-        },
-        {
-          id: 4,
-          title: "Kanagawa",
-          description: "Vague de Kanagawa - Japon - 1831",
-          imageUrl: "https://upload.wikimedia.org/wikipedia/commons/0/0a/The_Great_Wave_off_Kanagawa.jpg",
-          createdDate: new Date(),
-          snaps: 0,
-          location: "Kanagawa"
-        },
-        {
-          id: 5,
-          title: "Kitsune",
-          description: "Kasai Kitsune - Renard brulant a neuf queues",
-          imageUrl: "https://cdn.shopify.com/s/files/1/0606/7260/6439/files/Kasai_Kitsune_480x480.jpg?v=1639474688",
-          createdDate: new Date(),
-          snaps: 0,
-          location: "Japon"
-        },
-        {
-          id: 6,
-          title: "Amaterasu",
-          description: "Amaterasu - Dieu du Soleil au Japon",
-          imageUrl: "https://thumbs.dreamstime.com/z/shinto-d%C3%A9esse-de-la-mythologie-du-soleil-d-amaterasu-art-vecteur-203296709.jpg",
-          createdDate: new Date(),
-          snaps: 0,
-        }
-      ];
 
-  getAllFaceSnaps(): FaceSnap[] {
-    return this.faceSnaps;
+  constructor(private http: HttpClient) {}
+
+
+  getAllFaceSnaps(): Observable<FaceSnap[]> {
+    return this.http.get<FaceSnap[]>('http://localhost:3000/facesnaps');
   }
 
-  getFaceSnapById(faceSnapId: number): FaceSnap {
-    const faceSnap = this.faceSnaps.find(faceSnap => faceSnap.id === faceSnapId);
-    if (!faceSnap) {
-      throw new Error("FaceSnap not found");
-    } else {
-      return faceSnap;
-    }
+  getFaceSnapById(faceSnapId: number): Observable<FaceSnap> {
+    return this.http.get<FaceSnap>(`http://localhost:3000/facesnaps/${faceSnapId}`)
+  }
+
+  snapFaceSnapById(faceSnapId: number, snapType: "snap" | "unsnap"): Observable<FaceSnap> {
+    return this.getFaceSnapById(faceSnapId).pipe(
+      map(faceSnap => ({
+        ...faceSnap,
+        snaps: faceSnap.snaps + (snapType === 'snap' ? 1 : -1)
+      })),
+      switchMap(updatedFaceSnap => this.http.put<FaceSnap>(
+        `http://localhost:3000/facesnaps/${faceSnapId}`,
+        updatedFaceSnap)
+      )
+    );
 
   }
 
-  snapFaceSnapById(faceSnapId: number, snapType: "snap" | "unsnap"): void {
-    const faceSnap = this.getFaceSnapById(faceSnapId);
-    snapType === "snap" ? faceSnap.snaps++ : faceSnap.snaps--;
+  addFaceSnap(formValue: {title: string, description: string, imageUrl: string, location?: string}): Observable<FaceSnap> {
+    return this.getAllFaceSnaps().pipe(
+      map(facesnaps => [...facesnaps].sort((a, b) => a.id - b.id)),
+      map(sortedFacesnaps => sortedFacesnaps[sortedFacesnaps.length - 1 ]),
+      map(previousFacesnap => ({
+        ...formValue,
+        snaps: 0,
+        createdDate: new Date(),
+        id: previousFacesnap.id + 1,
+      })),
+      switchMap(newFacesnap => this.http.post<FaceSnap>(`http://localhost:3000/facesnaps`, newFacesnap))
+    );
   }
-
 }
 
 

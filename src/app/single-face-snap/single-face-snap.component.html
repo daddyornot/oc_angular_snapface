@@ -1,4 +1,4 @@
-<div class="face-snap-card" [ngClass]="{ snapped: buttonText === 'Oops! Unsnap'}"> <!-- On applique la classe snapped si la condition est respectée-->
+<div class="face-snap-card" *ngIf="faceSnap$ | async as faceSnap" [ngClass]="{ snapped: buttonText === 'Oops! Unsnap'}"> <!-- On applique la classe snapped si la condition est respectée-->
 
     <h2>{{ faceSnap.title | uppercase }}</h2>
     <a routerLink="/facesnaps">Back</a>
@@ -7,7 +7,7 @@
     <p>{{ faceSnap.description }}</p>
     <p *ngIf="faceSnap.location">Localisation : {{ faceSnap.location }}</p>
     <p>
-        <button (click)="onSnap()">{{ buttonText }}</button>
+        <button (click)="onSnap(faceSnap.id)">{{ buttonText }}</button>
         <span [ngStyle]="{ color: 'rgb(0,'+ faceSnap.snaps +',0)' }"> 🤌 {{ faceSnap.snaps }}</span>
     </p>
 </div>
