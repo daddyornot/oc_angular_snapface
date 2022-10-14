@@ -1,7 +1,7 @@
 import { Component, OnInit, Input } from '@angular/core';
 import { Router } from '@angular/router';
-import { FaceSnap } from '../models/face-snap.model';
-import { FaceSnapsService } from '../services/face-snaps.services';
+import { FaceSnap } from '../../../core/models/face-snap.model';
+import { FaceSnapsService } from '../../../core/services/face-snaps.services';
 
 @Component({
   selector: 'app-face-snap',
@@ -11,7 +11,7 @@ import { FaceSnapsService } from '../services/face-snaps.services';
 export class FaceSnapComponent implements OnInit {
   @Input() faceSnap!: FaceSnap; //on rend possible l'injection de la propriété faceSnap depuis l'exterieur d'un component
   buttonText!: string;
-  
+
   constructor(private faceSnapsService: FaceSnapsService,
               private router: Router) {}
 
